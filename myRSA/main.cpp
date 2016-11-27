@@ -45,8 +45,9 @@ bool miller_rabin(int num)
 	return true;
 }
 
-bool Test(int a, int n)
+bool Test(int n)
 {
+	int a = rand() % n;
 	int t = 0, u;
 	u = n - 1;
 	while (u % 2 == 0)
@@ -59,7 +60,7 @@ bool Test(int a, int n)
 	for (int i = 1; i <= t; i++)
 	{
 		tmp = false;
-		if (x == 1 || x == n - 1)
+		if (x == 1 || x == n - 1) 
 			tmp = true;
 		x = mod_exp(x, 2, n);
 		if (x = 1 && tmp)
@@ -71,35 +72,13 @@ bool Test(int a, int n)
 		return false;
 }
 
-bool mill(int n)
+bool mill(int num, int round)
 {
-	int a = rand() % n;
-	while (1)
+	while (round--)
 	{
-		if (a > 1)
-			break;
-		a = rand() % n;
-	}
-
-	int t = 0;
-	int d = n - 1;
-	while (d % 2 == 0)
-	{
-		++t;
-		d /= 2;
-	}
-
-	if (mod_exp(a, d, n) != 1)
-		return false;
-	
-	int tmp = 1;
-	for (int i = 0; i < t; i++)
-	{
-		if (mod_exp(a,tmp*d,n) != (n-1))
+		if (Test(num) == false)
 			return false;
-		tmp *= 2;
 	}
-	return true;
 	/*int a = rand() % n;
 	while (1)
 	{
@@ -252,10 +231,9 @@ int main()
 	/////////////////////////////////
 	for (int i = 4; i < 100; i++)
 	{
-		if (miller_rabin(i))
+		if (miller_rabin(i) != mill(i,20))
 		{
-			cout << "Number : " << i << endl;
-			cout << mill(i) << endl;
+			cout << "Number " << i << " Fail" << endl;
 		}
 	}
 	return 0;
