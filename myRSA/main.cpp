@@ -4,20 +4,27 @@
 #include<cmath>
 using namespace std;;
 
+// set bit length
 int bitlen = 15;
 
+// return base^exp % mod
 int mod_exp(int base, int exp, int mod)
 {
+	// tmp : pointer for square and multiply
 	int tmp = 1;
 	while (exp >= tmp)
 		tmp <<= 1;
 	tmp >>= 2;
+
+	//sqare and multiply
 	long long ret = base;
-	//sqare and multiply;
 	while (tmp > 0)
 	{
+		// square
 		ret = ret*ret;
 		ret %= mod;
+
+		// multiply
 		if (exp & tmp)
 		{
 			ret = ret * base;
@@ -25,116 +32,64 @@ int mod_exp(int base, int exp, int mod)
 		}
 		tmp >>= 1;
 	}
-
-	return ret;
+	return (int)ret;
 }
 
-bool miller_rabin(int num)
-{
-	// Real
-
-	//blah;;;
-
-	// Test
-	int sq_rt = sqrt(num);
-	for (int i = 2; i <= sq_rt; i++)
-	{
-		if (num % i == 0)
-			return false;
-	}
-	return true;
-}
-
+// Miller-Rabin test
 bool Test(int n)
 {
-	int a = rand() % n;
-	int t = 0, u;
-	u = n - 1;
-	while (u % 2 == 0)
+	int a = rand() % n-1;
+	while(a <= 1)
+		a = rand() % n-1;
+	int k = 0, q;
+	q = n - 1;
+	while (q % 2 == 0)
 	{
-		++t;
-		u = u / 2;
+		++k;
+		q = q / 2;
 	}
-	bool tmp;
-	int x = mod_exp(a, u, n);
-	for (int i = 1; i <= t; i++)
+
+	int x = mod_exp(a, q, n);
+
+	if (x == 1)
+		return true;
+
+	for (int i = 0; i < k; i++)
 	{
-		tmp = false;
-		if (x == 1 || x == n - 1) 
-			tmp = true;
-		x = mod_exp(x, 2, n);
-		if (x = 1 && tmp)
+		if (x == n - 1)
 			return true;
+		
+		x = mod_exp(x, 2, n);
 	}
-	if (x != 1)
-		return true;	
-	else
-		return false;
+	return false;
 }
 
-bool mill(int num, int round)
+// Run Test() round time.
+// If num is prime number, return true;
+bool miller_rabin(int num, int round)
 {
 	while (round--)
 	{
 		if (Test(num) == false)
 			return false;
 	}
-	/*int a = rand() % n;
-	while (1)
-	{
-		if (a > 1)
-			break;
-		a = rand() % n;
-	}
-		
-	for (int i = 1; i < 9; i++)
-	{
-		int t;
-		if (t = Test(a, n))
-		{
-			cout << "a : " << a << ", n : " << n << endl;
-			cout << "Test : " << t << endl;
-			return false;
-		}
-	}
 	return true;
-*/
-
-
-	/*int q = num-1;
-	int k = 0;
-	while (q % 2 == 0)
-	{
-		k++;
-		q /= 2;
-	}
-	int a;
-	while ((a = rand() % (num - 1)) <= 1);
-
-	if (mod_exp(a, q, num) == 1)
-		return true;
-	int tmp = 1;
-	for (int j = 0; j < k; j++)
-	{
-		if (mod_exp(a, tmp*q, num) == num - 1)
-			return true;
-	}
-	return false;*/
 }
 
+// return a 15bit prime number
 int create_prime_number()
 {
 	int ret = rand() % (1 << bitlen);
 
-	while (miller_rabin(ret) == false)
+	while (miller_rabin(ret, 20) == false)
 	{
 		ret = rand() % (1 << bitlen);
-		//cout << ret << endl;
 	}
 
 	return ret;
 }
 
+// return gcd of a and b. (Euclidean Algorithm)
 int gcd(int a, int b)
 {
 	int tmp;
@@ -150,6 +105,9 @@ int gcd(int a, int b)
 	else
 		return gcd(b, a%b);
 }
+
+// Useless.
+// return 30bit integer
 int create_big_number()
 {
 	int ret = rand() % (1 << bitlen);
@@ -158,6 +116,7 @@ int create_big_number()
 	return ret;
 }
 
+// return inverse of b for mod m
 int extended_euclid(int m, int b)
 {
 	int A1 = 1, A2 = 0, A3 = m;
@@ -169,7 +128,12 @@ int extended_euclid(int m, int b)
 		if (B3 == 0)
 			return -1;
 		if (B3 == 1)
+		{
+			if (B2 < 0)
+				B2 += m;
 			return B2;
+		}
+			
 		Q = A3 / B3;
 		t1 = A1 - Q*B1;
 		t2 = A2 - Q*B2;
@@ -179,103 +143,53 @@ int extended_euclid(int m, int b)
 	}
 }
 
+// RSA Encryption.
+// Cyphertext is (M^e mod N)
 int encrypt(int M, int e, int N)
 {
 	int C = mod_exp(M, e, N);
 	return C;
 }
 
+// RSA Decryption.
+// Decrypted text is (C^d mod N)
 int decrypt(int C, int d, int N)
 {
 	int D = mod_exp(C, d, N);
 	return D;
 }
 
-int Extended_Euclid(int r1, int r2)
-{
-	int r, q, s, s1 = 1, s2 = 0, t, t1 = 0, t2 = 1, tmp = r1;
-
-	while (r2)
-	{
-		q = r1 / r2;
-		r = r1%r2;
-		s = s1 - q*s2;
-		t = t1 - q*t2;
-
-		//printf("%4d %4d %4d %4d %4d %4d %4d %4d %4d %4d\n", q, r1, r2, r, s1, s2, s, t1, t2, t);
-
-		r1 = r2;
-		r2 = r;
-		s1 = s2;
-		s2 = s;
-		t1 = t2;
-		t2 = t;
-	}
-	//printf("%4d %4d %4d      %4d %4d      %4d          \n\n", q, r1, r2, s1, s2, t1);
-
-	//printf("s : %d , t : %d \n", s1, t1);
-
-	if (r1 == 1) //역원이 있음
-	{
-		if (t1 < 0)
-			t1 += tmp;
-		return t1;
-	}
-
-	return 0;
-}
-
 int main()
 {
-	// Miller Rabin Test ......
-	/////////////////////////////////
-	for (int i = 4; i < 100; i++)
-	{
-		if (miller_rabin(i) != mill(i,20))
-		{
-			cout << "Number " << i << " Fail" << endl;
-		}
-	}
-	return 0;
-	/////////////////////////////////
-
-	srand(time(NULL));
+	srand((unsigned int)time(NULL));
 	int p, q, N, phi;
 	
+	// get prime number p,q
 	p = create_prime_number();
 	q = create_prime_number();
 
-	//testcase;
-	//p = 17293;
-	//q = 19051;
-
+	// set N, phi(totient N)
 	N = p * q;
 	phi = (p - 1)*(q - 1);
 
-	int e = create_big_number();
+	// get 30bit e that gcd(phi,e)=1
+	//int e = create_big_number();
+	//while (gcd(phi, e) != 1)
+	//{
+	//	e = create_big_number();
+	//}
+	int e = 257;
 
-	while (gcd(phi, e) != 1)
-	{
-		e = create_big_number();
-	}
-
-	//e = 17;
-
-	int d;
-	d = extended_euclid(phi, e);
-	if (d < 0)
-		d += phi;
-	//int k = Extended_Euclid(phi, e); // test용
-	
-									 
-	////////
-	printf("p : %d\n", p);
-	printf("q : %d\n", q);
-	printf("N : %d\n", N);
-	printf("phi : %d\n", phi);
-	printf("e : %d\n", e);
-	printf("d : %d\n", d);
-	//printf("k : %d\n", k); // test용
+	// set d is inverse of e
+	int d = extended_euclid(phi, e);
+				 
+	// print values
+	printf("p = %d\n", p);
+	printf("q = %d\n", q);
+	printf("N = %d\n", N);
+	printf("phi = %d\n", phi);
+	printf("e = %d\n", e);
+	printf("d = %d\n", d);
 	
 	// Input Message Number
 	int M;
@@ -292,5 +206,5 @@ int main()
 	cout << "**Decryption" << endl;
 	int D = decrypt(C, d, N);
 	cout << "decrypted cipher : " << D << endl;
-	//////
+	
 }
